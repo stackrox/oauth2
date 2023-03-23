@@ -201,7 +201,7 @@ func PostRawRequest(ctx context.Context, clientID, clientSecret, tokenURL string
 	if err != nil {
 		return nil, err // transport errors are not related to auth style.
 	}
-	if resp.StatusCode >= 400 && resp.StatusCode <= 499 && needsAuthStyleProbe {
+	if is4xxStatusCode(resp.StatusCode) && needsAuthStyleProbe {
 		// If we get an error, assume the server wants the
 		// clientID & clientSecret in a different form.
 		// See https://code.google.com/p/goauth2/issues/detail?id=31 for background.
@@ -218,7 +218,7 @@ func PostRawRequest(ctx context.Context, clientID, clientSecret, tokenURL string
 		req, _ = newTokenRequest(tokenURL, clientID, clientSecret, v, authStyle)
 		resp, err = ContextClient(ctx).Do(req.WithContext(ctx))
 	}
-	if needsAuthStyleProbe && err == nil && (resp.StatusCode < 400 || resp.StatusCode > 499) {
+	if needsAuthStyleProbe && err == nil && !is4xxStatusCode(resp.StatusCode) {
 		setAuthStyle(tokenURL, authStyle)
 	}
 	return resp, err
@@ -295,4 +295,8 @@ type RetrieveError struct {
 
 func (r *RetrieveError) Error() string {
 	return fmt.Sprintf("oauth2: cannot fetch token: %v\nResponse: %s", r.Response.Status, r.Body)
+}
+
+func is4xxStatusCode(code int) bool {
+	return code/100 == 4
 }
