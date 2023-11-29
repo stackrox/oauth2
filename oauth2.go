@@ -243,7 +243,7 @@ func (c *Config) Exchange(ctx context.Context, code string, opts ...AuthCodeOpti
 // Note that a non-2xx response is passed through as-is, without setting an error value. Nothing is ever read from the
 // response body.
 func (c *Config) PostRawRequest(ctx context.Context, endpoint string, v url.Values) (*http.Response, error) {
-	return internal.PostRawRequest(ctx, c.ClientID, c.ClientSecret, endpoint, v, internal.AuthStyle(c.Endpoint.AuthStyle))
+	return internal.PostRawRequest(ctx, c.ClientID, c.ClientSecret, endpoint, v, internal.AuthStyle(c.Endpoint.AuthStyle), c.authStyleCache.Get())
 }
 
 // Client returns an HTTP client using the provided token.
